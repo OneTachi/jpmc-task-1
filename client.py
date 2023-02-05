@@ -22,6 +22,8 @@ import json
 import random
 import urllib.request
 
+from bakery import assert_equal
+
 # Server API URLs
 QUERY = "http://localhost:8080/query?id={}"
 
@@ -29,20 +31,26 @@ QUERY = "http://localhost:8080/query?id={}"
 N = 500
 
 
-def getDataPoint(quote):
+def getDataPoint(quote) -> tuple:
     """ Produce all the needed values to generate a datapoint """
-    """ ------------- Update this function ------------- """
     stock = quote['stock']
     bid_price = float(quote['top_bid']['price'])
     ask_price = float(quote['top_ask']['price'])
-    price = bid_price
+    price = (bid_price + ask_price) / 2
     return stock, bid_price, ask_price, price
 
 
-def getRatio(price_a, price_b):
+def getRatio(price_a : float, price_b : float) -> float:
     """ Get ratio of price_a and price_b """
-    """ ------------- Update this function ------------- """
-    return 1
+    if not price_b:
+        return
+
+    return price_a / price_b
+
+assert_equal(getRatio(5, 0), None)
+assert_equal(getRatio(1, 2), 0.5)
+assert_equal(getRatio(2, 1), 2.0)
+assert_equal(getRatio(85.5, .5), 171.0)
 
 
 # Main
@@ -51,9 +59,10 @@ if __name__ == "__main__":
     for _ in iter(range(N)):
         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
 
-        """ ----------- Update to get the ratio --------------- """
+        prices = {}
         for quote in quotes:
             stock, bid_price, ask_price, price = getDataPoint(quote)
+            prices[stock] = price #Grabbing stock name with associated price
             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
 
-        print("Ratio %s" % getRatio(price, price))
+        print("Ratio %s" % getRatio(prices['ABC'], prices['DEF']))
